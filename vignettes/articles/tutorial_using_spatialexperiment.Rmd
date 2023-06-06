@@ -1,0 +1,263 @@
+---
+title: "SpatialView Tutorial (Using SpatialExperiment)"
+author: "Chitrasen Mohanty"
+date: "06/01/2023"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+  html_document:
+    toc: yes
+    toc_depth: '3'
+    df_print: paged
+  html_notebook:
+    toc_depth: 3
+    number_sections: yes
+    theme: yeti
+    highlight: zenburn
+    toc: yes
+bibliography: references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+In this tutorial we are using Spatial Transcriptomics (ST) data published in [@barkley2022a]. This data contains multiple samples from different cancer types, such as breast, gastrointestinal, liver, ovary, pancreas, endometrium, and others. This data is helpful to understand the heterogeneity in tumor micro environment (TME) among different cancer types. For this demonstration, we will be using the ten samples (3 breast, 2 gastrointestinal, 1 liver, 2 ovarian, 1 pancreas, and 1 endometrium) generated using 10x SpaceRanger. We will use SpatialExperiment [@righelli2022] object for keeping ST data for pre-processing and subsequent analysis. We will integrate the data using harmony [@korsunsky2019] then clustering followed by differential expression (DE) analysis to identify the marker genes of the clusters. Finally, we will export the analyzed data to **SpatialView** (Mohanty *et al*., 2023) for interactive visualization.
+
+*Note that it requires to have python installed in your system. Python comes with many operating system pre-installed (such as Linux, Mac OS). To install python, please follow <https://www.python.org/doc/>.*
+
+Tutorial for [SpatialView using Seurat](SpatialView_Tutorial_Using_Seurat.html)
+
+```{r setup, eval=FALSE}
+library(stringr)
+library(dplyr)
+library(R.utils)
+library(ggplot2)
+
+library(SpatialExperiment)
+library(scran)
+library(scater)
+library(ggspavis)
+
+library(SpatialViewR)
+```
+
+# Data
+
+The tar file containing all the required samples can be downloaded from GEO (<https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE203612>). Note that, the file size is 675MB. Once the data is downloaded to the local computer, the following code untars the contents and places them in their appropriate sub directories.
+
+```{r eval=FALSE}
+
+#provide the correct path to the downloaded tar file
+data_path = "../../data_others/spatial/cancer_multi/GSE203612_RAW.tar"
+set.seed(2023)
+dir_name = dirname(data_path)
+base_name = str_split(basename(data_path), pattern = "\\.")[[1]][1]
+untar(data_path, exdir = file.path(dir_name, base_name))
+data_path = file.path(dir_name, base_name)
+
+#If the files are already uncompressed then change the path in the below line.
+file_names <- list.files(data_path)
+files.df <- as.data.frame(str_split(file_names, "_", n = 4, simplify = TRUE))
+colnames(files.df) <- paste0("col",1:4)
+files.df <- files.df %>% rowwise() %>% mutate(sample_name = ifelse(col2 == "NYU", col3, col2))
+files.df$file_name = file_names
+
+#currently we are using NYU samples only.
+for (i in 1:nrow(files.df)) {
+  target_file_name <- files.df[i, "file_name"]
+  if (str_detect(target_file_name, "Vis") & files.df[i, "col2"] == "NYU") {
+    
+    target_file_name <- str_remove(target_file_name, pattern = ".*processed_")
+    output_dir <- file.path(data_path, files.df[i,"sample_name"])
+    
+    #SpatialExperiment needs data to be inside outs directory
+    output_dir <- file.path(output_dir, "outs")
+    if (str_detect(target_file_name, "spatial")) {
+      output_dir <- file.path(output_dir,"spatial")
+      target_file_name <- str_remove(target_file_name, pattern = ".*spatial_")
+    }
+    
+    if (!dir.exists(output_dir)) {dir.create(output_dir, recursive = TRUE)}
+    
+    file.copy(from = file.path(data_path, files.df[i, "file_name"]), 
+              to = file.path(output_dir, target_file_name), 
+              overwrite = TRUE)
+    #if the file is compressed then decompress it
+    if (str_ends(target_file_name, ".gz")) {
+      gunzip(file.path(output_dir, target_file_name), overwrite = TRUE)
+    }
+  }
+   
+    if(!isDirectory(file.path(data_path, files.df[i, "file_name"]))){
+    file.remove(file.path(data_path, files.df[i, "file_name"]))
+  }
+}
+```
+
+## Reading data as SpatialExperiment object:
+
+```{r eval=FALSE}
+
+data_path = "../../data_others/spatial/cancer_multi/GSE203612_RAW"
+
+TME_10x.spe <- SpatialExperiment::read10xVisium(samples = file.path(data_path, list.files(data_path)), 
+                                                sample_id = list.files(data_path), images = "lowres")
+```
+
+# Data Processing
+
+## Pre-processing
+
+Following a simple thresholds mentioned in <https://lmweber.org/OSTA-book/mouse-coronal-workflow.html>
+
+```{r eval=FALSE}
+
+# subset to keep only spots over tissue
+TME_10x.spe <- TME_10x.spe[, colData(TME_10x.spe)$in_tissue == 1]
+# calculate per-spot QC metrics and store in colData
+TME_10x.spe <- addPerCellQC(TME_10x.spe)
+
+# select QC thresholds
+qc_lib_size <- colData(TME_10x.spe)$sum < 5000
+qc_detected <- colData(TME_10x.spe)$detected < 1000
+
+# combined set of discarded spots
+discard <- qc_lib_size | qc_detected
+
+# filter low-quality spots
+TME_10x.spe <- TME_10x.spe[, !discard]
+```
+
+## Normalization
+
+We are performing logNomalization using the \*logNormCounts\* function.
+
+```{r eval=FALSE}
+# calculate library size factors
+TME_10x.spe <- computeLibraryFactors(TME_10x.spe)
+# calculate logcounts and store in object
+TME_10x.spe <- logNormCounts(TME_10x.spe)
+```
+
+## Integration Pipeline
+
+Now, we will integrate all the samples after removing the batch effects.
+
+```{r eval=FALSE}
+
+# fit mean-variance relationship
+dec <- scran::modelGeneVar(TME_10x.spe)
+
+# getting 10% of the genes as HVG
+top_hvgs <- getTopHVGs(dec, prop = 0.1)
+
+#Batch effet remove using harmony
+TME_10x.spe <- scater::runPCA(TME_10x.spe, ncomponents = 50)
+TME_10x.spe <- harmony::RunHarmony(
+    TME_10x.spe, group.by.vars = 'sample_id', lambda = 0.1, dims.use = 50,
+    verbose = FALSE)
+
+```
+
+## Clustering
+
+With the integrated data, we will perform clustering. Note that, the number of clusters detected is sensitive to the input parameters used in the functions. The parameters used in this example are for demonstration purpose.
+
+```{r eval=FALSE}
+
+k <- 20
+g <- scran::buildSNNGraph(TME_10x.spe, k = k, use.dimred = "HARMONY")
+g_walk <- igraph::cluster_walktrap(g)
+clus <- g_walk$membership
+colLabels(TME_10x.spe) <- factor(clus)
+```
+
+Optionally, you can visualize the cluster memberships on a static figure.
+
+```{r eval=FALSE}
+
+# define custom color palette
+a <- ggplot2::scale_color_hue(h.start = 0)
+colors  <- a$palette(length(unique(TME_10x.spe$label)))
+
+# plot clusters in spatial x-y coordinates
+ggspavis::plotVisium(TME_10x.spe, fill = "label", 
+          palette = colors)
+```
+
+## Differential Expression (DE) Analysis
+
+We will use *findMarkers* function scran package to identify the DE genes in each cluster.
+
+*This step is optional, you may use other DE analysis as well.*
+
+```{r eval=FALSE}
+
+# set gene names as row names for easier plotting
+rownames(TME_10x.spe) <- rowData(TME_10x.spe)$symbol
+
+# test for marker genes
+markers <- scran::findMarkers(TME_10x.spe, test = "binom", direction = "up")
+
+top_markers <- lapply(seq_along(markers), function(i){
+  markers[[i]] %>%  
+    as.data.frame() %>%
+    filter(FDR < 0.001 & abs(summary.logFC) > 1) %>% 
+    arrange(FDR) %>%
+    select(p.value, FDR, summary.logFC) %>%
+    head(30)
+})
+```
+
+# Visualization Using SpatialView
+
+```{r eval=FALSE}
+
+#adding sample information to the visualization
+
+sampleInfo <- data.frame(sample = c("BRCA0", "BRCA1", "BRCA2", 
+                                    "GIST1", "GIST2", 
+                                    "LIHC1", "OVCA1",  "OVCA3",  
+                                   "PDAC1",   "UCEC3"),
+                         type = c("breast", "breast", "breast",
+                                  "gastrointestinal", "gastrointestinal",
+                                  "liver", "ovary", "ovary",
+                                "pancreas", "endometrium"))
+
+data.dir <- file.path(data_path, list.files(data_path))
+
+#needs list of vectors
+clusterGenes = lapply(top_markers, function(df){rownames(df)})
+
+prepare10x_from_SpatialExperiment(TME_10x.spe, 
+                                  data.paths = data.dir,
+                                  projectName = "TME",
+                                  export.path = "outs/TME_SpatialView/",
+                                  clusterGenes = clusterGenes,
+                                  sampleInfo = sampleInfo,
+                                  verbose = TRUE)
+```
+
+The SpatialView application will be launched in your preferred web browser.
+
+![](images/spatialview_screenshot.png)
+
+If you are interested to evaluate one or multiple sets of genes in the group analysis, you can easily do so by placing the files in the group_data/group_genes directory. This file should be a csv file with following columns "cluster","color","name","genes". The "genes" column contains all the genes with ',' separated.
+
+For example
+
+```{r eval=FALSE}
+
+copyFile("outs/TME_SpatialView/TME/data/BRCA0/cluster_info.csv", "outs/TME_SpatialView/TME/group_data/group_genes/")
+```
+
+You can also save multiple csv files containing genes (no additional formatting required) in the group_data/show_tables directory. SpatialView automatically shows this data as an interactive table.
+
+After adding the files to the group_genes directory, use reload/refresh button on the web page to reload the application.
+
+# Citations

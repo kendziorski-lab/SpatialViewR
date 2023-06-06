@@ -1,0 +1,6 @@
+^renv$
+^renv\.lock$
+^SpatialViewR\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^vignettes/articles$

@@ -1,0 +1,21 @@
+Package: SpatialViewR
+Title: Prepares data for SpatialView
+Version: 0.0.1
+Authors@R: 
+    person("Chitrasen", "Mohanty", , "cmohanty2@wisc.edu", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: This is an helper package for preparing data for using in
+    SpatialView (A web based spatial RNA sequencing data visualization)
+License: MIT + file LICENSE
+Imports: 
+    ggplot2,
+    rjson,
+    R.utils,
+    stringr (>= 1.0.0)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.2
+Suggests: 
+    rmarkdown,
+    Seurat,
+    SpatialExperiment
