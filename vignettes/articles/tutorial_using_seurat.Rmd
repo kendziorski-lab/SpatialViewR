@@ -1,5 +1,5 @@
 ---
-title: "SpatialView Tutorial: Exporting from Seurat"
+title: "SpatialView Tutorial: Exporting data from Seurat"
 author: "Chitrasen Mohanty"
 bibliography: references.bib
 date: 06/01/2023
@@ -30,6 +30,10 @@ In this tutorial we are using Spatial Transcriptomics (ST) data published in [@b
 Tutorial for [SpatialView using SpatialExperiment](SpatialView_Tutorial_Using_SpatialExperiment.html)
 
 ```{r setup, eval=FALSE}
+
+#Install SpatialviewR if not yet installed.
+remotes::install_github("kendziorski-lab/SpatialviewR")
+
 library(stringr)
 library(dplyr)
 library(Seurat)
@@ -44,11 +48,22 @@ install.packages("https://cran.r-project.org/src/contrib/Archive/Matrix.utils/Ma
 library("Matrix.utils")
 ```
 
+
+```{r echo=FALSE, include=FALSE, eval=FALSE}
+remotes::install_github("rlesur/klippy")
+```
+
+```{r klippy, echo=FALSE, include=TRUE}
+klippy::klippy(position = c("top", "right"))
+```
+
+
+
 # Data
 
 The tar file containing all the required samples can be downloaded from GEO (<https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE203612>). Note that, the file size is 675MB. Once the data is downloaded to the local computer, the following code untars the contents and places them in their appropriate sub directories.
 
-```{r eval=FALSE}
+```{r , eval=FALSE, class.source='klippy'}
 #provide the correct path to the downloaded tar file
 data_path = "../../data_others/spatial/cancer_multi/GSE203612_RAW.tar"
 set.seed(2023)
@@ -96,6 +111,8 @@ for (i in 1:nrow(files.df)) {
 ## Reading data as Seurat object:
 
 ```{r eval=FALSE}
+#confirm the data_path
+data_path = "../../data_others/spatial/cancer_multi/GSE203612_RAW"
 
 TME_10x.list <- lapply(list.files(data_path), function(d){
   data.sample <- Load10X_Spatial(data.dir = file.path(data_path, d), 
@@ -292,6 +309,10 @@ selected.markers.list.bulkDE <- lapply(levels(integrated.data@meta.data$seurat_c
 
 ```{r eval=FALSE}
 
+#confirmt the export path
+export_path = "outs/TME_SpatialView/"
+dir.create(export_path, recursive = TRUE)
+
 #adding sample information to the visualization
 sampleInfo <- data.frame(sample = c("BRCA0", "BRCA1", "BRCA2", 
                                     "GIST1", "GIST2", 
@@ -305,7 +326,7 @@ sampleInfo <- data.frame(sample = c("BRCA0", "BRCA1", "BRCA2",
 data.dir <- file.path(data_path, list.files(data_path))
 
 prepare10x_from_seurat(integrated.data, data.dir, 
-                       export.path = "outs/TME_SpatialView/", 
+                       export.path = export_path, 
                        clusterCol = "seurat_clusters",
                        projectName = "TME",
                        downloadRepo = TRUE,

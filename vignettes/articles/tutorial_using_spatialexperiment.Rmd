@@ -1,5 +1,5 @@
 ---
-title: "SpatialView Tutorial (Using SpatialExperiment)"
+title: "SpatialView Tutorial: Exporting data from SpatialExperiment"
 author: "Chitrasen Mohanty"
 date: "06/01/2023"
 output:
@@ -32,7 +32,21 @@ In this tutorial we are using Spatial Transcriptomics (ST) data published in [@b
 
 Tutorial for [SpatialView using Seurat](SpatialView_Tutorial_Using_Seurat.html)
 
+
+```{r echo=FALSE, include=FALSE, eval=FALSE}
+remotes::install_github("rlesur/klippy")
+```
+
+```{r klippy, echo=FALSE, include=TRUE}
+klippy::klippy(position = c("top", "right"))
+```
+
+
+
 ```{r setup, eval=FALSE}
+#Install SpatialviewR if not yet installed.
+remotes::install_github("kendziorski-lab/SpatialviewR")
+
 library(stringr)
 library(dplyr)
 library(R.utils)
@@ -218,6 +232,11 @@ top_markers <- lapply(seq_along(markers), function(i){
 
 ```{r eval=FALSE}
 
+#confirmt the export path
+export_path = "outs/TME_SpatialView/"
+dir.create(export_path, recursive = TRUE)
+
+
 #adding sample information to the visualization
 
 sampleInfo <- data.frame(sample = c("BRCA0", "BRCA1", "BRCA2", 
@@ -237,7 +256,7 @@ clusterGenes = lapply(top_markers, function(df){rownames(df)})
 prepare10x_from_SpatialExperiment(TME_10x.spe, 
                                   data.paths = data.dir,
                                   projectName = "TME",
-                                  export.path = "outs/TME_SpatialView/",
+                                  export.path = export_path,
                                   clusterGenes = clusterGenes,
                                   sampleInfo = sampleInfo,
                                   verbose = TRUE)
