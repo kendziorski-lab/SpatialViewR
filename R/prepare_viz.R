@@ -100,23 +100,24 @@ prepare10x_from_seurat <- function(seuratObj,
 
 
     # unzip the .zip file
-    dir.create(file.path(export.path, "spatialview_temp_"))
+    dir.create(file.path(export.path, "spatialview_temp_"), recursive = TRUE)
     unzip(
       zipfile = file.path(export.path, paste0(projectName, ".zip")),
       exdir = file.path(export.path, "spatialview_temp_"),
       overwrite = TRUE
     )
+    #remove the zip file once it is un-zipped
     file.remove(file.path(export.path, paste0(projectName, ".zip")))
 
-    spatialview_temp_dir <-
-      list.files(file.path(export.path, "spatialview_temp_"))
+    spatialview_temp_dir_files <-
+       list.dirs(file.path(export.path, "spatialview_temp_"), recursive = FALSE)
     unlink(file.path(export.path, projectName), recursive = TRUE)
     file.rename(
-      file.path(export.path, "spatialview_temp_", spatialview_temp_dir),
+      file.path(spatialview_temp_dir_files),
       file.path(export.path, projectName)
     )
 
-    file.remove(file.path(export.path, "spatialview_temp_"))
+    file.remove(file.path(export.path, "spatialview_temp_"), recursive = TRUE)
     config.path <-
       file.path(export.path, projectName, "config", "app_config.json")
     dataHTML.path <-
@@ -198,7 +199,7 @@ prepare10x_from_seurat <- function(seuratObj,
       message(paste(dir_name, 'is created for', sel.ident))
 
     export.path_sample <- file.path(export.path, dir_name)
-    dir.create(export.path_sample, showWarnings = FALSE)
+    dir.create(export.path_sample, showWarnings = FALSE, recursive = TRUE)
 
     # Step 1
     # checking scalefactors_json.json, this file is a must have one else error
@@ -596,7 +597,7 @@ prepare10x_from_SpatialExperiment <- function(speObj,
 
 
     # unzip the .zip file
-    dir.create(file.path(export.path, "spatialview_temp_"))
+    dir.create(file.path(export.path, "spatialview_temp_"), recursive = TRUE)
     unzip(
       zipfile = file.path(export.path, paste0(projectName, ".zip")),
       exdir = file.path(export.path, "spatialview_temp_"),
@@ -694,7 +695,7 @@ prepare10x_from_SpatialExperiment <- function(speObj,
       message(paste(dir_name, 'is created for', sel.ident))
 
     export.path_sample <- file.path(export.path, dir_name)
-    dir.create(export.path_sample, showWarnings = FALSE)
+    dir.create(export.path_sample, showWarnings = FALSE, recursive = TRUE)
 
     # Step 1
     # checking scalefactors_json.json, this file is a must have one else error
