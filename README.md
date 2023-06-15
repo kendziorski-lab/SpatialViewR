@@ -1,5 +1,5 @@
 # SpatialViewR
-Prepares data for SpatialView from R. Currently SpatialViewR supports Seurat and SpatialExperiment objects.
+Prepares data for [SpatialView](https://github.com/kendziorski-lab/SpatialView) from R. Currently SpatialViewR supports Seurat and SpatialExperiment objects.
 
 ### Installlation
 SpatialViewR can be installed using 
