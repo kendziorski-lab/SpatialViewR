@@ -101,7 +101,7 @@ prepare10x_from_seurat <- function(seuratObj,
 
     # unzip the .zip file
     dir.create(file.path(export.path, "spatialview_temp_"), recursive = TRUE)
-    unzip(
+    utils::unzip(
       zipfile = file.path(export.path, paste0(projectName, ".zip")),
       exdir = file.path(export.path, "spatialview_temp_"),
       overwrite = TRUE
@@ -238,7 +238,7 @@ prepare10x_from_seurat <- function(seuratObj,
           stop("Package R.utils must be installed to process your data.",
                call. = FALSE)
         }
-        gunzip(
+        R.utils::gunzip(
           file.path(
             data.path,
             spatialSubDir,
@@ -598,7 +598,7 @@ prepare10x_from_SpatialExperiment <- function(speObj,
 
     # unzip the .zip file
     dir.create(file.path(export.path, "spatialview_temp_"), recursive = TRUE)
-    unzip(
+    utils::unzip(
       zipfile = file.path(export.path, paste0(projectName, ".zip")),
       exdir = file.path(export.path, "spatialview_temp_"),
       overwrite = TRUE
@@ -734,7 +734,7 @@ prepare10x_from_SpatialExperiment <- function(speObj,
           stop("Package R.utils must be installed to process your data.",
                call. = FALSE)
         }
-        gunzip(
+        R.utils::gunzip(
           file.path(
             data.path,
             spatialSubDir,

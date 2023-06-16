@@ -18,4 +18,8 @@ RoxygenNote: 7.2.3
 Suggests: 
     rmarkdown,
     Seurat,
-    SpatialExperiment
+    SpatialExperiment,
+    Matrix,
+    SummarizedExperiment,
+    R.utils,
+    xtable
