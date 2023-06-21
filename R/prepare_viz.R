@@ -20,7 +20,14 @@
 #' @param exprRound The expressions are rounded for effectively saving space. Default rounding will be three decimal places.
 #' @param spatialSubDir Sub-directory name where spatial files are located for 10x.
 #' @param sampleInfo A dataframe with metadata information for the samples. Rows are for samples.
-#' @param downloadRepo If TRUE (default), downloads SpatialView from GitHub repository, and runs the SpatialView application in local computer.
+#' @param downloadRepo If TRUE (default), downloads SpatialView from the GitHub repository, and runs the SpatialView application on a local computer.
+#'                    When TRUE, the updated SpatialView files are downloaded from GitHub (spatialviewRepo URL).
+#'                    To download the files, SpatialViewR uses the 'wget' utility. The 'wget' package is pre-installed on most Linux distributions.
+#'                    For Mac, see https://stackoverflow.com/questions/33886917/how-to-install-wget-in-macos
+#'                    For Windows, see   https://gnuwin32.sourceforge.net/packages/wget.htm
+#'                    Alternatively, SpatialView files can be downloaded manually, from
+#'                     https://github.com/kendziorski-lab/spatialview/archive/refs/tags/spatialview-latest.zip
+#'                     and export.path to be set to <PATH TO SPATIALVIEW DIr>/data/
 #' @param spatialviewRepo If downloadRepo = TRUE, then downloads the SpatialView from GitHub repository.
 #' @param spatialviewVersion If downloadRepo = TRUE, then downloads the specified version of SpatialView.
 #' @param port Port to be used for running SpatialView. If downloadRepo=FALSE, it's ignored.
@@ -513,7 +520,14 @@ prepare10x_from_seurat <- function(seuratObj,
 #' @param exprRound The expressions are rounded for effectively saving space. Default rounding will be three decimal places.
 #' @param spatialSubDir Sub-directory name where spatial files are located for 10x.
 #' @param sampleInfo A dataframe with metadata information for the samples. Rows are for samples.
-#' @param downloadRepo If TRUE (default), downloads SpatialView from GitHub repository, and runs the SpatialView application in local computer.
+#' @param downloadRepo If TRUE (default), downloads SpatialView from the GitHub repository, and runs the SpatialView application on a local computer.
+#'                    When TRUE, the updated SpatialView files are downloaded from GitHub (spatialviewRepo URL).
+#'                    To download the files, SpatialViewR uses the 'wget' utility. The 'wget' package is pre-installed on most Linux distributions.
+#'                    For Mac, see https://stackoverflow.com/questions/33886917/how-to-install-wget-in-macos
+#'                    For Windows, see   https://gnuwin32.sourceforge.net/packages/wget.htm
+#'                    Alternatively, SpatialView files can be downloaded manually, from
+#'                     https://github.com/kendziorski-lab/spatialview/archive/refs/tags/spatialview-latest.zip
+#'                     and export.path to be set to <PATH TO SPATIALVIEW DIr>/data/
 #' @param spatialviewRepo If downloadRepo = TRUE, then downloads the SpatialView from GitHub repository.
 #' @param spatialviewVersion If downloadRepo = TRUE, then downloads the specified version of SpatialView.
 #' @param port Port to be used for running SpatialView. If downloadRepo=FALSE, it's ignored.
