@@ -22,8 +22,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-
-In this tutorial we are using Spatial Transcriptomics (ST) data published in [@barkley2022a]. This data contains multiple samples from different cancer types, such as breast, gastrointestinal, liver, ovary, pancreas, endometrium, and others. This data is helpful to understand the heterogeneity in tumor micro environment (TME) among different cancer types. For this demonstration, we will be using the ten samples (3 breast, 2 gastrointestinal, 1 liver, 2 ovarian, 1 pancreas, and 1 endometrium) generated using 10x SpaceRanger. We will use Seurat [@hao2021] for data pre-processing and integrating the samples. With the integrated data, we will do clustering followed by differential expression (DE) analysis to identify the marker genes of the clusters. Finally, we will export the analyzed data to **SpatialView** (Mohanty *et al*., 2023) for interactive visualization.
+In this tutorial we are using Spatial Transcriptomics (ST) data published in [@barkley2022a]. This data contains multiple samples from different cancer types, such as breast, gastrointestinal, liver, ovary, pancreas, endometrium, and others. This data is helpful to understand the heterogeneity in tumor micro environment (TME) among different cancer types. For this demonstration, we will be using the ten samples (3 breast, 2 gastrointestinal, 1 liver, 2 ovarian, 1 pancreas, and 1 endometrium) generated using 10x SpaceRanger. We will use Seurat [@hao2021] for data pre-processing and integrating the samples. With the integrated data, we will do clustering followed by differential expression (DE) analysis to identify the marker genes of the clusters. Finally, we will export the analyzed data to **SpatialView** [@mohanty2023] for interactive visualization.
 
 *Note that it requires to have python installed in your system. Python comes with many operating system pre-installed (such as Linux, Mac OS). To install python, please follow <https://www.python.org/doc/>.*
 
@@ -48,7 +47,6 @@ install.packages("https://cran.r-project.org/src/contrib/Archive/Matrix.utils/Ma
 library("Matrix.utils")
 ```
 
-
 ```{r echo=FALSE, include=FALSE, eval=FALSE}
 remotes::install_github("rlesur/klippy")
 ```
@@ -56,8 +54,6 @@ remotes::install_github("rlesur/klippy")
 ```{r klippy, echo=FALSE, include=TRUE}
 klippy::klippy(position = c("top", "right"))
 ```
-
-
 
 # Data
 
@@ -354,4 +350,3 @@ You can also save multiple csv files containing genes (no additional formatting 
 After adding the files to the group_genes directory, use reload/refresh button on the web page to reload the application.
 
 # Citations
-
