@@ -1,9 +1,9 @@
 Package: SpatialViewR
 Title: Prepares data for SpatialView
-Version: 0.0.1
+Version: 1.0.0
 Authors@R: 
     person("Chitrasen", "Mohanty", , "cmohanty2@wisc.edu", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+           comment = c(ORCID = "0009-0008-0864-6371"))
 Description: This is an helper package for preparing data for using in
     SpatialView (A web based spatial RNA sequencing data visualization)
 License: MIT + file LICENSE
@@ -21,5 +21,4 @@ Suggests:
     SpatialExperiment,
     Matrix,
     SummarizedExperiment,
-    R.utils,
     xtable

@@ -9,7 +9,7 @@
 This is an helper package for preparing data for using in SpatialView (A web based spatial RNA sequencing data visualization)
 }
 \author{
-\strong{Maintainer}: Chitrasen Mohanty \email{cmohanty2@wisc.edu} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Chitrasen Mohanty \email{cmohanty2@wisc.edu} (\href{https://orcid.org/0009-0008-0864-6371}{ORCID})
 
 }
 \keyword{internal}

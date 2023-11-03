@@ -1,7 +1,7 @@
 ---
 title: "SpatialView Tutorial: Exporting data from SpatialExperiment"
 author: "Chitrasen Mohanty"
-date: "06/01/2023"
+date: "10/12/2023"
 output:
   prettydoc::html_pretty:
     theme: cayman
@@ -28,9 +28,13 @@ knitr::opts_chunk$set(
 
 In this tutorial we are using Spatial Transcriptomics (ST) data published in [@barkley2022a]. This data contains multiple samples from different cancer types, such as breast, gastrointestinal, liver, ovary, pancreas, endometrium, and others. This data is helpful to understand the heterogeneity in tumor micro environment (TME) among different cancer types. For this demonstration, we will be using the ten samples (3 breast, 2 gastrointestinal, 1 liver, 2 ovarian, 1 pancreas, and 1 endometrium) generated using 10x SpaceRanger. We will use SpatialExperiment [@righelli2022] object for keeping ST data for pre-processing and subsequent analysis. We will integrate the data using harmony [@korsunsky2019] then clustering followed by differential expression (DE) analysis to identify the marker genes of the clusters. Finally, we will export the analyzed data to **SpatialView** [@mohanty2023] for interactive visualization.
 
-*Note that it requires to have python installed in your system. Python comes with many operating system pre-installed (such as Linux, Mac OS). To install python, please follow <https://www.python.org/doc/>.*
+*Note that it requires to have python installed in your system. Many operating systems have python pre-installed (such as Linux, Mac OS). To install python, please follow <https://www.python.org/doc/>.*
+
+You may check:
 
 Tutorial for [SpatialView using Seurat](SpatialView_Tutorial_Using_Seurat.html)
+
+[SpatialView User Guide](https://raw.githubusercontent.com/kendziorski-lab/kendziorski-lab.github.io/main/projects/spatialview/user_guide.pdf "User Guide")
 
 ```{r echo=FALSE, include=FALSE, eval=FALSE}
 remotes::install_github("rlesur/klippy")
@@ -251,10 +255,10 @@ data.dir <- file.path(data_path, list.files(data_path))
 #needs list of vectors
 clusterGenes = lapply(top_markers, function(df){rownames(df)})
 
-prepare10x_from_SpatialExperiment(TME_10x.spe, 
-                                  data.paths = data.dir,
+prepare10xVisium_from_SpatialExperiment(TME_10x.spe, 
+                                  dataPaths = data.dir,
+                                  exportPath = export_path,
                                   projectName = "TME",
-                                  export.path = export_path,
                                   clusterGenes = clusterGenes,
                                   sampleInfo = sampleInfo,
                                   verbose = TRUE)
