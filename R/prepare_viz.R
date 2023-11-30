@@ -39,8 +39,13 @@
 #'
 #' @param spatialviewRepo Downloads SpatialView from GitHub repository (ignored if downloadRepo = FALSE).
 #' @param spatialviewVersion Downloads the specified version of SpatialView (ignored if downloadRepo = FALSE).
-#' @param port Port to be used for running SpatialView (ignored if downloadRepo = FALSE).
+#' @param port Port to be used for running SpatialView (ignored if downloadRepo = FALSE). See more details in 'launchApp' description.
 #' @param launchApp If TRUE (default), then launches the web application (ignored if downloadRepo = FALSE).
+#'
+#' Note that the web application is launched in background with in a separate process. Make sure that the port is not already in use.
+#' In case port is already in use, then either provide a different port number or kill the existing process that uses the desired port.
+#' See the FAQ section in https://github.com/kendziorski-lab/spatialview.
+#'
 #' @param export_sparse If TRUE (default, recommended), sparse expression matrix will be exported, else dense csv format will be used.
 #' @param data_file_name_expressions Name of the exported expression matrix in csv format (ignored if export_sparse = TRUE).
 #' @param data_file_name_expressions_sparse Name of the exported expression matrix in sparse format (ignored if export_sparse = FALSE).
@@ -611,7 +616,7 @@ prepare10xVisium_from_seurat <- function(seuratObj,
 #' @param spatialSubDir Sub-directory name where spatial files are located for 10x.
 #' @param sampleInfo A dataframe with metadata information for the samples. Rows are for samples.
 #' @param downloadRepo
-#' If TRUE (default), downloads SpatialView from the GitHub repository,
+#' If TRUE (default), downloads SpatialView from the GitHub repository
 #' and runs the SpatialView application on a local computer.
 #'
 #' When TRUE, the updated SpatialView files are downloaded from GitHub (spatialviewRepo URL).
@@ -620,9 +625,9 @@ prepare10xVisium_from_seurat <- function(seuratObj,
 #'
 #' For Windows, see   \link{https://gnuwin32.sourceforge.net/packages/wget.htm}
 #'
-#' When downloadRepo set to FALSE, SpatialView files may be downloaded manually from the GitHub repository
+#' When 'downloadRepo' set to FALSE, SpatialView files may be downloaded manually from the GitHub repository
 #' \link{https://github.com/kendziorski-lab/spatialview/archive/refs/tags/spatialview-latest.zip}
-#' and exportPath to be set to <PATH TO SPATIALVIEW DIR>/data/
+#' and 'exportPath' to be set to <PATH TO SPATIALVIEW DIR>/data/
 #'
 #'For details please refer to the \href{https://raw.githubusercontent.com/kendziorski-lab/kendziorski-lab.github.io/main/projects/spatialview/user-guide.pdf}{user-guide}
 #'
@@ -630,8 +635,13 @@ prepare10xVisium_from_seurat <- function(seuratObj,
 #' @param spatialviewVersion Downloads the specified version of SpatialView (ignored if downloadRepo = FALSE).
 #'                  The latest  version is maintained in the 'spatialview-latest'.
 #'
-#' @param port Port to be used for running SpatialView (ignored if downloadRepo = FALSE).
+#' @param port Port to be used for running SpatialView (ignored if downloadRepo = FALSE). See more details in 'launchApp' description.
 #' @param launchApp If TRUE (default), then launches the web application (ignored if downloadRepo = FALSE).
+#'
+#' Note that the web application is launched in background with in a separate process. Make sure that the port is not already in use.
+#' In case port is already in use, then either provide a different port number or kill the existing process that uses the desired port.
+#' See the FAQ section in https://github.com/kendziorski-lab/spatialview.
+#'
 #' @param export_sparse If TRUE (default, recommended), sparse expression matrix will be exported, else dense csv format will be used.
 #' @param data_file_name_expressions Name of the exported expression matrix in csv format (ignored if export_sparse = TRUE).
 #' @param data_file_name_expressions_sparse Name of the exported expression matrix in sparse format (ignored if export_sparse = FALSE).

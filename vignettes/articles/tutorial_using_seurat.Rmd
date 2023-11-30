@@ -38,6 +38,7 @@ Tutorial for [SpatialView using SpatialExperiment](SpatialView_Tutorial_Using_Sp
 remotes::install_github("kendziorski-lab/SpatialviewR")
 
 library(stringr)
+library(purrr)
 library(dplyr)
 library(Seurat)
 library(R.utils)
@@ -141,10 +142,9 @@ data_cleaning <- function(data.list,min_depth=500, mt.pct.max = 30, rib.pct.mx =
     subset(x, nCount_Spatial >= min_depth & percent.mt <= mt.pct.max & percent.rp <= rib.pct.mx)
   })
   
-  g_in_cells_counts = matrix(nrow=nrow(data.list[[1]]), ncol = length(data.list))
-  for(i in seq_along(data.list)){
-    #print(dim(data.list[[i]]))
-    g_in_cells_counts[,i] <- Matrix::rowSums(data.list[[i]]@assays$Spatial@counts > 0) >= min_cell_for_gene
+  g_in_cells_counts = matrix(nrow = nrow(data.list[[1]]), ncol = length(data.list))
+  for (i in seq_along(data.list)){
+    g_in_cells_counts[,i] <- Matrix::rowSums(GetAssayData(data.list[[i]], assay = "Spatial", slot = "counts") > 0) >= min_cell_for_gene
   }
   
   rownames(g_in_cells_counts) <- rownames(data.list[[1]])
@@ -234,17 +234,27 @@ Finding marker genes in each cluster we will perform t-test comparing each clust
 DefaultAssay(integrated.data) <- "Spatial"
 
 # DE analysis
+GetAssayData.multi <- function(object, assay = "Spatial", slot = "data"){
+  if (object@version$major < 5){
+    return(GetAssayData(object = object, assay = assay, slot = slot))
+  }else{
+    existing_layers <- names(object@assays[[assay]]@layers)
+    req_layers <- str_starts(existing_layers, pattern = slot)
+    return( do.call(cbind, object@assays[[assay]]@layers[req_layers]))
+  }
+}
+
 all.markers.pseudoBulk.tTest <- function(object = integrated.data, 
                               assay = "Spatial", slot = "data",
                               only.pos = FALSE, log2FC.min = 0){
   
   groups <- object@meta.data[, c("seurat_clusters", "orig.ident")]
-  aggr_sum <- aggregate.Matrix(t(GetAssayData(object = object,
+  aggr_sum <- aggregate.Matrix(t(GetAssayData.multi(object = object,
                                                  assay = "Spatial",
                                                  slot = "data")), 
                                   groupings = groups, fun = "sum")
   
-  aggr_num <- aggregate.Matrix(t(GetAssayData(object = object,
+  aggr_num <- aggregate.Matrix(t(GetAssayData.multi(object = object,
                                                  assay = "Spatial",
                                                  slot = "data") > -1), 
                                   groupings = groups, fun = "sum")
@@ -252,9 +262,11 @@ all.markers.pseudoBulk.tTest <- function(object = integrated.data,
   aggr_counts = aggr_sum/aggr_num
 
   aggr_counts <- t(aggr_counts)
+  rownames(aggr_counts) <- rownames(object)
+   
   cluster_names <- unique(object@meta.data$seurat_clusters)
-  test_res.df_all <- lapply(cluster_names, function(c){
-    matched_cols <- str_detect(base::colnames(aggr_counts), paste0("^", c,"_"))
+  test_res.df_all <- lapply(cluster_names, function(cl){
+    matched_cols <- str_detect(base::colnames(aggr_counts), paste0("^", cl,"_"))
     
     aggr_counts.sub <- aggr_counts
     
@@ -271,37 +283,34 @@ all.markers.pseudoBulk.tTest <- function(object = integrated.data,
       res <-  t.test(aggr_counts.sub[g,matched_cols], aggr_counts.sub[g,!matched_cols])
       return(c(res$estimate[1], res$estimate[2], res$p.value))
     })
+    
+    if (all(sapply(test_res, is.null))) return(NULL)
     test_res.df <- data.frame(matrix(unlist(test_res), 
                                      nrow = nrow(aggr_counts.sub), 
                                      byrow = T))
     base::colnames(test_res.df) <- c("Mean.X", "Mean.Y", "p_value")
     test_res.df$Log2FC <- log2(test_res.df[,"Mean.X"]) - log2(test_res.df[,"Mean.Y"])
-    test_res.df$Cluster = c
+    test_res.df$Cluster = cl
     test_res.df <- test_res.df[,c("Cluster","Mean.X", "Mean.Y", "Log2FC", "p_value")]
     test_res.df$p_val_adj <- p.adjust(test_res.df$p_value, method = "BH")
     test_res.df$Gene <- rownames(aggr_counts.sub)
     rownames(test_res.df) <- rownames(aggr_counts.sub)
     test_res.df
   }) 
-  return(do.call("rbind", test_res.df_all))
+  return(purrr::list_rbind(test_res.df_all))
 }
 
 markers.bulkDE <- all.markers.pseudoBulk.tTest(object = integrated.data, 
                               assay = "Spatial", slot = "data", only.pos = TRUE,
                               log2FC.min = 1)
 
-markers.bulkDE3 <- all.markers.pseudoBulk.tTest(object = integrated.data,
-                              assay = "Spatial", slot = "data", only.pos = TRUE,
-                              log2FC.min = 1)
-
-
 
 selected.markers.bulkDE <- markers.bulkDE %>% 
   filter(p_val_adj < 0.1) %>% 
   arrange(desc(Log2FC))
 
-selected.markers.list.bulkDE <- lapply(levels(integrated.data@meta.data$seurat_clusters), function(c){
-  selected.markers.bulkDE$Gene[selected.markers.bulkDE$Cluster == c]
+selected.markers.list.bulkDE <- lapply(levels(integrated.data@meta.data$seurat_clusters), function(cl){
+  selected.markers.bulkDE$Gene[selected.markers.bulkDE$Cluster == cl]
 })
 ```
 
@@ -309,7 +318,7 @@ selected.markers.list.bulkDE <- lapply(levels(integrated.data@meta.data$seurat_c
 
 ```{r eval=FALSE}
 
-#confirmt the export path
+#confirm the export path
 export_path = "outs/TME_SpatialView/"
 dir.create(export_path, recursive = TRUE)
 

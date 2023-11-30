@@ -234,7 +234,7 @@ top_markers <- lapply(seq_along(markers), function(i){
 
 ```{r eval=FALSE}
 
-#confirmt the export path
+#confirm the export path
 export_path = "outs/TME_SpatialView/"
 dir.create(export_path, recursive = TRUE)
 
